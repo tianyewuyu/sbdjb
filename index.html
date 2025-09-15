@@ -682,9 +682,12 @@
                             <input type="text" id="department" required placeholder="请输入您的科室">
                         </div>
                         <div class="form-group">
-                            <label for="equipment">使用设备</label>
-                            <input type="text" id="equipment" required readonly style="background-color: #f9f9f9;">
-                        </div>
+                    <label for="equipment">使用设备 *</label>
+                    <select id="equipment" required>
+                        <option value="">请选择设备</option>
+                        <!-- 选项会通过JavaScript动态生成 -->
+                    </select>
+                </div>
                         <button type="button" onclick="register()" class="btn-full">提交登记</button>
                     </form>
                     <div id="successMessage" class="success-message">
@@ -725,6 +728,17 @@
                     <div class="filter-group">
                         <label style="visibility: hidden;">导出</label>
                         <button onclick="exportData()" style="background: #27ae60;">导出数据</button>
+                    </div>
+                </div>
+                
+                <div class="equipment-management" style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h3 style="margin-top: 0;">设备管理</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="text" id="newEquipmentName" placeholder="输入新设备名称" style="flex: 1;">
+                        <button onclick="addEquipment()">添加设备</button>
+                    </div>
+                    <div id="equipmentList" style="max-height: 200px; overflow-y: auto;">
+                        <!-- 设备列表将通过JavaScript动态生成 -->
                     </div>
                 </div>
                 
@@ -784,26 +798,203 @@
     </div>
 
     <script>
+        // 从localStorage加载设备列表，如果没有则使用默认列表
+        function getEquipmentList() {
+            const savedEquipment = localStorage.getItem('fitnessEquipment');
+            if (savedEquipment) {
+                return JSON.parse(savedEquipment);
+            } else {
+                // 默认设备列表
+                const defaultEquipment = [
+                    {id: 'treadmill', name: '跑步机'},
+                    {id: 'elliptical', name: '椭圆机'},
+                    {id: 'stationary_bike', name: '健身车'},
+                    {id: 'dumbbell', name: '哑铃区'},
+                    {id: 'bench_press', name: '卧推架'}
+                ];
+                localStorage.setItem('fitnessEquipment', JSON.stringify(defaultEquipment));
+                return defaultEquipment;
+            }
+        }
+
+        // 保存设备列表到localStorage
+        function saveEquipmentList(equipmentList) {
+            localStorage.setItem('fitnessEquipment', JSON.stringify(equipmentList));
+        }
+
+        // 初始化设备下拉选择框
+        function initEquipmentDropdown() {
+            const equipmentSelect = document.getElementById('equipment');
+            if (equipmentSelect) {
+                // 清空现有选项
+                equipmentSelect.innerHTML = '<option value="">请选择设备</option>';
+                
+                // 获取设备列表
+                const equipmentList = getEquipmentList();
+                
+                // 添加选项
+                equipmentList.forEach(equipment => {
+                    const option = document.createElement('option');
+                    option.value = equipment.name;
+                    option.textContent = equipment.name;
+                    equipmentSelect.appendChild(option);
+                });
+            }
+        }
+
+        // 加载设备管理列表
+        function loadEquipmentManagementList() {
+            const container = document.getElementById('equipmentList');
+            if (!container) return;
+            
+            const equipmentList = getEquipmentList();
+            container.innerHTML = '';
+            
+            if (equipmentList.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999;">暂无设备</p>';
+                return;
+            }
+            
+            equipmentList.forEach((equipment, index) => {
+                const item = document.createElement('div');
+                item.style.display = 'flex';
+                item.style.alignItems = 'center';
+                item.style.justifyContent = 'space-between';
+                item.style.padding = '10px';
+                item.style.borderBottom = '1px solid #eee';
+                
+                item.innerHTML = `
+                    <span>${equipment.name}</span>
+                    <div style="display: flex; gap: 5px;">
+                        <button onclick="editEquipment(${index}, '${equipment.name}')" style="background: #3498db; padding: 5px 10px; font-size: 14px;">修改</button>
+                        <button onclick="deleteEquipment(${index})" style="background: #e74c3c; padding: 5px 10px; font-size: 14px;">删除</button>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        // 添加设备
+        function addEquipment() {
+            const equipmentName = document.getElementById('newEquipmentName').value.trim();
+            if (!equipmentName) {
+                showError('请输入设备名称');
+                return;
+            }
+            
+            const equipmentList = getEquipmentList();
+            
+            // 检查设备是否已存在
+            const exists = equipmentList.some(equipment => equipment.name === equipmentName);
+            if (exists) {
+                showError('该设备已存在');
+                return;
+            }
+            
+            // 添加新设备
+            equipmentList.push({
+                id: 'eq_' + Date.now(),
+                name: equipmentName
+            });
+            
+            // 保存并更新界面
+            saveEquipmentList(equipmentList);
+            loadEquipmentManagementList();
+            initEquipmentDropdown();
+            generateQRCode(); // 重新生成二维码
+            generateQRCodeRegister();
+            
+            document.getElementById('newEquipmentName').value = '';
+            showSuccess('设备添加成功');
+        }
+        
+        // 修改设备
+        function editEquipment(index, oldName) {
+            const newName = prompt('请输入新的设备名称:', oldName);
+            if (newName === null) return; // 用户取消
+            
+            const trimmedName = newName.trim();
+            if (!trimmedName) {
+                showError('设备名称不能为空');
+                return;
+            }
+            
+            const equipmentList = getEquipmentList();
+            
+            // 检查是否与其他设备名称重复
+            const exists = equipmentList.some((equipment, i) => i !== index && equipment.name === trimmedName);
+            if (exists) {
+                showError('该设备名称已存在');
+                return;
+            }
+            
+            // 更新设备名称
+            equipmentList[index].name = trimmedName;
+            
+            // 保存并更新界面
+            saveEquipmentList(equipmentList);
+            loadEquipmentManagementList();
+            initEquipmentDropdown();
+            generateQRCode();
+            generateQRCodeRegister();
+            
+            showSuccess('设备修改成功');
+        }
+
+        // 删除设备
+        function deleteEquipment(index) {
+            if (confirm('确定要删除该设备吗？')) {
+                const equipmentList = getEquipmentList();
+                equipmentList.splice(index, 1);
+                saveEquipmentList(equipmentList);
+                loadEquipmentManagementList();
+                initEquipmentDropdown();
+                generateQRCode();
+                generateQRCodeRegister();
+                showSuccess('设备删除成功');
+            }
+        }
+
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             generateQRCode();
             generateQRCodeRegister();
             loadRecords();
+            initEquipmentDropdown();
             
             // 显示相对路径
-            document.getElementById('pageUrl').textContent = 'dj.html?page=register';
+            const currentUrl = window.location.href.split('?')[0];
+            document.getElementById('pageUrl').textContent = currentUrl + '?page=register';
             
             // 检查URL参数，自动跳转到登记页面并设置设备信息
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('page') === 'register') {
+                // 直接显示登记界面，不显示其他标签
+                document.querySelectorAll('.tab-content')[0].style.display = 'none';
+                document.querySelectorAll('.tab-content')[1].style.display = 'block';
+                document.querySelectorAll('.tab-content')[2].style.display = 'none';
+                
+                // 隐藏标签栏
+                document.querySelector('.tabs').style.display = 'none';
+                
                 // 获取设备参数
                 const equipment = urlParams.get('equipment') || '';
                 if (equipment) {
-                    document.getElementById('equipment').value = equipment;
+                    const equipmentSelect = document.getElementById('equipment');
+                    if (equipmentSelect) {
+                        equipmentSelect.value = equipment;
+                    }
                 }
                 
+                // 确保微信提示正常显示
+                if (isWechatBrowser()) {
+                    showWechatAlert();
+                }
+            } else if (urlParams.get('page') === 'admin') {
                 setTimeout(() => {
-                    switchTab(1);
+                    switchTab(2);
+                    loadEquipmentManagementList();
                 }, 100);
             }
             
@@ -827,14 +1018,8 @@
         }
     }
     
-    // 健身设备列表
-    const fitnessEquipment = [
-        {id: 'treadmill', name: '跑步机'},
-        {id: 'elliptical', name: '椭圆机'},
-        {id: 'stationary_bike', name: '健身车'},
-        {id: 'dumbbell', name: '哑铃区'},
-        {id: 'bench_press', name: '卧推架'}
-    ];
+    // 使用函数获取设备列表而不是固定变量
+        const fitnessEquipment = getEquipmentList();
     
     // 为不同设备生成二维码
         function generateEquipmentQRCodes() {
@@ -843,7 +1028,10 @@
             
             container.innerHTML = '';
             
-            fitnessEquipment.forEach(equipment => {
+            // 获取最新的设备列表
+            const equipmentList = getEquipmentList();
+            
+            equipmentList.forEach(equipment => {
                 const equipmentDiv = document.createElement('div');
                 equipmentDiv.className = 'equipment-item';
                 
@@ -860,8 +1048,9 @@
                 container.appendChild(equipmentDiv);
                 
                 // 生成二维码
-                // 使用相对路径替代
-                const pageUrl = `dj.html?page=register&equipment=${encodeURIComponent(equipment.name)}`;
+                // 正确初始化当前URL
+                const currentUrl = window.location.href.split('?')[0];
+                const pageUrl = currentUrl + `?page=register&equipment=${encodeURIComponent(equipment.name)}`;
                 
                 new QRCode(qrDiv, {
                     text: pageUrl,
@@ -888,11 +1077,29 @@
         
         // 显示微信提示
         function showWechatAlert() {
-            document.getElementById('wechatAlert').style.display = 'block';
-            // 10秒后自动隐藏
-            setTimeout(() => {
+            // 添加更明显的提示样式
+            const alert = document.getElementById('wechatAlert');
+            alert.style.display = 'block';
+            alert.style.position = 'fixed';
+            alert.style.zIndex = '9999';
+            alert.style.backgroundColor = '#ff4757';
+            alert.style.color = 'white';
+            alert.style.padding = '20px';
+            alert.style.borderRadius = '10px';
+            alert.style.textAlign = 'center';
+            alert.style.fontSize = '16px';
+            alert.style.top = '50%';
+            alert.style.left = '50%';
+            alert.style.transform = 'translate(-50%, -50%)';
+            alert.style.width = '90%';
+            alert.style.maxWidth = '400px';
+            alert.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+            
+            // 防止自动隐藏
+            clearTimeout(window.wechatAlertTimeout);
+            window.wechatAlertTimeout = setTimeout(() => {
                 closeWechatAlert();
-            }, 10000);
+            }, 20000); // 延长显示时间到20秒
         }
         
         // 关闭微信提示
@@ -924,6 +1131,7 @@
             
             if (index === 2) {
                 loadRecords();
+                loadEquipmentManagementList();
             }
             
             // 更新URL
@@ -951,8 +1159,9 @@
             
             try {
                 qrElement.innerHTML = '';
-                // 使用相对路径替代
-                const pageUrl = 'dj.html?page=register';
+                // 正确初始化当前URL
+                const currentUrl = window.location.href.split('?')[0];
+                const pageUrl = currentUrl + '?page=register';
                 
                 console.log('生成指南页二维码，URL:', pageUrl);
                 
@@ -981,8 +1190,9 @@
             
             try {
                 qrElement.innerHTML = '';
-                // 使用相对路径替代
-                const pageUrl = 'dj.html?page=register';
+                // 正确初始化当前URL
+                const currentUrl = window.location.href.split('?')[0];
+                const pageUrl = currentUrl + '?page=register';
                 
                 console.log('生成登记页二维码，URL:', pageUrl);
                 
@@ -1040,9 +1250,9 @@
                 showSuccess('登记成功！');
                 document.getElementById('registrationForm').reset();
                 
-                // 3秒后自动跳回指南页
+                // 保持在当前页面，用户可以关闭或再次填写
                 setTimeout(() => {
-                    switchTab(0);
+                    document.getElementById('registrationForm').reset();
                 }, 3000);
             }
         }
@@ -1091,9 +1301,15 @@
                     tableBody.appendChild(row);
                 });
             } catch (error) {
-                showError('加载记录失败');
+                    showError('加载记录失败');
+                }
+                
+                // 显示用户统计信息
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('page') === 'admin' || document.querySelectorAll('.tab-content')[2].classList.contains('active')) {
+                    showUserStatistics();
+                }
             }
-        }
         
         // 应用筛选条件
         function applyFilters() {
@@ -1164,6 +1380,66 @@
             setTimeout(() => {
                 errorElement.style.display = 'none';
             }, 5000);
+        }
+        
+        // 添加使用次数统计功能
+        function showUserStatistics() {
+            const records = JSON.parse(localStorage.getItem('registrationRecords')) || [];
+            
+            // 统计每个人的使用次数
+            const userStats = {};
+            records.forEach(record => {
+                const key = `${record.name}-${record.phone}`;
+                if (!userStats[key]) {
+                    userStats[key] = {
+                        name: record.name,
+                        phone: record.phone,
+                        department: record.department,
+                        count: 0,
+                        lastUsed: record.time
+                    };
+                }
+                userStats[key].count++;
+                if (record.time > userStats[key].lastUsed) {
+                    userStats[key].lastUsed = record.time;
+                }
+            });
+            
+            // 转换为数组并排序
+            const statsArray = Object.values(userStats).sort((a, b) => b.count - a.count);
+            
+            // 创建统计表格
+            let statsHtml = '<h3 style="margin-top: 30px;">使用统计</h3><table>';
+            statsHtml += '<thead><tr><th>姓名</th><th>手机号码</th><th>科室</th><th>使用次数</th><th>最后使用时间</th></tr></thead>';
+            statsHtml += '<tbody>';
+            
+            if (statsArray.length === 0) {
+                statsHtml += '<tr><td colspan="5" style="text-align: center;">暂无统计数据</td></tr>';
+            } else {
+                statsArray.forEach(stat => {
+                    statsHtml += `<tr><td>${stat.name}</td><td>${stat.phone}</td><td>${stat.department}</td><td>${stat.count}</td><td>${stat.lastUsed}</td></tr>`;
+                });
+            }
+            
+            statsHtml += '</tbody></table>';
+            
+            // 添加到管理面板
+            const adminPanel = document.querySelector('.admin-panel');
+            const statsDiv = document.createElement('div');
+            statsDiv.id = 'userStatistics';
+            statsDiv.innerHTML = statsHtml;
+            
+            // 移除已存在的统计信息
+            const existingStats = document.getElementById('userStatistics');
+            if (existingStats) {
+                adminPanel.removeChild(existingStats);
+            }
+            
+            // 找到表格后插入统计信息
+            const table = adminPanel.querySelector('table');
+            if (table) {
+                adminPanel.insertBefore(statsDiv, table.nextSibling);
+            }
         }
     </script>
 </body>
