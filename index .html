@@ -543,6 +543,28 @@
             font-size: 1rem;
         }
 
+        /* 数据查询提示 */
+        .data-help {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 flex-direction: column;
@@ -659,7 +681,7 @@
                     <div class="step-number">3</div>
                     <div class="step-content">
                         <h3>查看和管理数据</h3>
-                        <p>管理员可以在"后台管理"页面查看所有登记记录。</p>
+                        <p>点击上方<strong>"后台管理"</strong>标签页，查看所有登记记录。</p>
                         <p>支持按时间、设备类型筛选，并可导出Excel数据。</p>
                     </div>
                 </div>
@@ -764,6 +786,15 @@
             <div class="admin-panel">
                 <h2 class="card-title">后台管理</h2>
                 
+                <div class="data-help">
+                    <h4>📊 数据查询说明</h4>
+                    <p>所有登记数据保存在<strong>当前浏览器</strong>中，清除浏览器数据会导致记录丢失。</p>
+                    <p>如需在不同设备间同步数据，请使用<strong>导出CSV</strong>功能备份数据。</p>
+                    <button class="refresh-btn" onclick="loadRecords()">
+                        🔄 刷新数据
+                    </button>
+                </div>
+                
                 <div class="stats-cards">
                     <div class="stat-card">
                         <div class="stat-label">总登记次数</div>
@@ -827,7 +858,7 @@
                     </div>
                 </div>
                 
-                <h3>登记记录</h3>
+                <h3>登记记录 <span id="recordsCount" style="font-size: 16px; color: #7f8c8d;"></span></h3>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -843,7 +874,7 @@
                         </thead>
                         <tbody id="recordsTable">
                             <tr>
-                                <td colspan="7" style="text-align: center;">暂无登记记录</td>
+                                <td colspan="7" style="text-align: center;">正在加载数据...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1022,6 +1053,9 @@
             const records = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
             const tableBody = document.getElementById('recordsTable');
             
+            // 更新记录数量显示
+            document.getElementById('recordsCount').textContent = `(共 ${records.length} 条记录)`;
+            
             if (records.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">暂无登记记录</td></tr>';
                 return;
@@ -1134,6 +1168,9 @@
             
             // 更新表格
             const tableBody = document.getElementById('recordsTable');
+            
+            // 更新记录数量显示
+            document.getElementById('recordsCount').textContent = `(筛选出 ${records.length} 条记录)`;
             
             if (records.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">没有找到匹配的记录</td></tr>';
