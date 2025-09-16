@@ -3,911 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>二维码扫码登记系统</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>二维码登记系统 - 数据管理</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-        }
-        
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
             margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
         }
-        
-        header {
+        .header {
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
             background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            position: relative;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        
-        .description {
-            color: #7f8c8d;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-        }
-        
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            background: #3498db;
-            color: white;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .tab.active {
-            background: #2c3e50;
-            font-weight: bold;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .main-content {
-            display: flex;
-            flex-wrap: wrap;
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
-            margin-bottom: 20px;
         }
-        
         .card {
             background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 25px;
-            flex: 1;
-            min-width: 300px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .card-title {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #3498db;
+        .data-section {
+            grid-column: 1 / -1;
         }
-        
-        .qr-section {
-            text-align: center;
-            position: relative;
-        }
-        
-        #qrcode, #qrcode-register {
-            margin: 20px auto;
-            padding: 15px;
-            background: white;
-            border-radius: 5px;
-            display: inline-block;
-            min-height: 230px;
-            min-width: 230px;
-            border: 1px solid #eee;
-            position: relative;
-        }
-        
-        .wechat-warning {
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ff4757;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            z-index: 10;
-            box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: translateX(-50%) scale(1); }
-            50% { transform: translateX(-50%) scale(1.05); }
-            100% { transform: translateX(-50%) scale(1); }
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
+        h1, h2, h3 {
             color: #2c3e50;
         }
-        
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: border 0.3s;
-        }
-        
-        input:focus, select:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-        
-        button:hover {
-            background: #2980b9;
-        }
-        
-        .btn-full {
-            width: 100%;
-        }
-        
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #3498db;
-            color: #3498db;
-        }
-        
-        .btn-outline:hover {
-            background: #3498db;
-            color: white;
-        }
-        
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .admin-panel {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 25px;
-            margin-top: 20px;
-        }
-        
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .filter-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
         }
-        
         th, td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        
         th {
             background-color: #f8f9fa;
             font-weight: 600;
-            color: #2c3e50;
         }
-        
         tr:hover {
             background-color: #f8f9fa;
         }
-        
-        .loading {
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #3498db;
+            color: #3498db;
+        }
+        .btn-danger {
+            background: #ff4757;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .alert-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .empty-data {
+            text-align: center;
+            padding: 30px;
             color: #7f8c8d;
             font-style: italic;
         }
-        
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-            display: none;
-        }
-        
-        .guide-section {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-        
-        .step {
-            display: flex;
-            margin-bottom: 20px;
-            align-items: flex-start;
-        }
-        
-        .step-number {
-            background: #3498db;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        
-        .step-content {
-            flex: 1;
-        }
-        
-        .note {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 4px;
-        }
-        
-        .highlight {
-            background: #e3f2fd;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #2196f3;
-        }
-        
-        .wechat-guide {
-            background: #fff0f0;
-            border: 2px solid #ff4757;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            animation: highlight 3s infinite;
-        }
-        
-        @keyframes highlight {
-            0% { border-color: #ff4757; }
-            50% { border-color: #ff6b81; }
-            100% { border-color: #ff4757; }
-        }
-        
-        .browser-icons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .browser-icon {
-            text-align: center;
-            cursor: pointer;
-            padding: 15px;
-            border-radius: 8px;
-            transition: background 0.3s;
-            border: 2px solid #3498db;
-            min-width: 100px;
-        }
-        
-        .browser-icon:hover {
-            background: #f5f7fa;
-        }
-        
-        .browser-icon .icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-            display: block;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            max-width: 90%;
-            width: 400px;
-            position: relative;
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-        }
-        
-        .modal-close:hover {
-            color: #333;
-        }
-        
-        .modal-buttons {
+        .stats {
             display: flex;
             gap: 15px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        
-        .wechat-steps {
-            text-align: left;
-            margin: 20px 0;
-        }
-        
-        .wechat-step {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        
-        .wechat-step-number {
-            background: #3498db;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            flex-shrink: 0;
-            font-weight: bold;
-        }
-        
-        /* 微信自动检测样式 */
-        .wechat-alert {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ff4757;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
-            z-index: 1001;
-            display: none;
-            animation: slideIn 0.5s ease-out;
-            max-width: 300px;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .wechat-alert-content {
-            display: flex;
-            align-items: center;
-        }
-        
-        .wechat-alert-icon {
-            font-size: 24px;
-            margin-right: 10px;
-        }
-        
-        .wechat-alert-close {
-            margin-left: 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* 设备管理样式 */
-        .equipment-management {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        
-        .equipment-list {
-            margin: 15px 0;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-        }
-        
-        .equipment-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 5px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .equipment-item:last-child {
-            border-bottom: none;
-        }
-        
-        .equipment-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .equipment-actions button {
-            padding: 5px 10px;
-            font-size: 14px;
-        }
-        
-        .add-equipment-form {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .add-equipment-form input {
-            flex: 1;
-        }
-        
-        .usage-count {
-            background: #f0f8ff;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            color: #3498db;
-        }
-
-        /* 数据统计卡片 */
-        .stats-cards {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
             margin-bottom: 20px;
         }
-        
         .stat-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 20px;
             flex: 1;
-            min-width: 200px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
             text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 24px;
             font-weight: bold;
             color: #3498db;
             margin: 10px 0;
         }
-        
         .stat-label {
             color: #7f8c8d;
-            font-size: 1rem;
-        }
-
-        /* 数据查询提示 */
-        .data-help {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid #2196f3;
-        }
-        
-        .refresh-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
             font-size: 14px;
         }
-
         @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
+            .container {
+                grid-template-columns: 1fr;
             }
-            
-            .filters {
-                flex-direction: column;
-            }
-            
-            .tabs {
-                flex-direction: column;
-            }
-            
-            .modal-content {
-                width: 90%;
-                padding: 20px;
-            }
-            
-            .modal-buttons {
-                flex-direction: column;
-            }
-            
-            .browser-icons {
-                flex-direction: column;
-            }
-            
-            .wechat-warning {
-                font-size: 12px;
-                padding: 5px 10px;
-            }
-            
-            .add-equipment-form {
-                flex-direction: column;
-            }
-            
-            .stats-cards {
+            .stats {
                 flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
-    <!-- 微信检测提示 -->
-    <div id="wechatAlert" class="wechat-alert">
-        <div class="wechat-alert-content">
-            <div class="wechat-alert-icon">⚠️</div>
-            <div>
-                <strong>微信提示</strong>
-                <p>请点击右上角"..."选择浏览器打开</p>
-            </div>
-            <div class="wechat-alert-close" onclick="closeWechatAlert()">×</div>
+    <div class="header">
+        <h1>二维码登记系统 - 数据管理</h1>
+        <p>在这里查看和管理所有扫码登记的数据</p>
+    </div>
+
+    <div class="alert alert-info">
+        <strong>数据存储说明：</strong> 所有数据保存在您当前设备的浏览器存储中。清除浏览器数据会导致记录丢失，请定期导出备份。
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-label">总记录数</div>
+            <div class="stat-number" id="totalRecords">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">今日登记</div>
+            <div class="stat-number" id="todayRecords">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">设备数量</div>
+            <div class="stat-number" id="equipmentCount">0</div>
         </div>
     </div>
 
     <div class="container">
-        <header>
-            <h1>二维码扫码登记系统</h1>
-            <p class="description">扫描二维码进行信息登记，后台可查询所有记录</p>
-            
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab(0)">使用指南</div>
-                <div class="tab" onclick="switchTab(1)">登记页面</div>
-                <div class="tab" onclick="switchTab(2)">后台管理</div>
+        <div class="card">
+            <h2>数据筛选</h2>
+            <div class="form-group">
+                <label for="search">搜索（姓名/手机/科室）</label>
+                <input type="text" id="search" placeholder="输入关键词搜索">
             </div>
-        </header>
-        
-        <div class="tab-content active">
-            <div class="guide-section">
-                <h2 class="card-title">系统使用指南</h2>
-                
-                <div class="wechat-guide">
-                    <h3 style="color: #ff4757; margin-top: 0;">⚠️ 重要：微信用户必读</h3>
-                    <p>微信扫描二维码后可能无法自动跳转，请按以下步骤操作：</p>
-                    
-                    <div class="wechat-steps">
-                        <div class="wechat-step">
-                            <div class="wechat-step-number">1</div>
-                            <div>使用微信扫描右侧二维码</div>
-                        </div>
-                        <div class="wechat-step">
-                            <div class="wechat-step-number">2</div>
-                            <div>点击右上角"<strong>•••</strong>"菜单按钮</div>
-                        </div>
-                        <div class="wechat-step">
-                            <div class="wechat-step-number">3</div>
-                            <div>选择"<strong>在浏览器打开</strong>"</div>
-                        </div>
-                        <div class="wechat-step">
-                            <div class="wechat-step-number">4</div>
-                            <div>选择您喜欢的浏览器完成登记</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>打印或展示二维码</h3>
-                        <p>将右侧的二维码打印出来或在大屏幕上展示，供用户扫描。</p>
-                        <p>二维码是固定的，长期有效，无需频繁更换。</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>用户登记流程</h3>
-                        <p>用户使用手机扫描二维码后，会进入登记页面。</p>
-                        <p>填写姓名、手机号码、科室并选择使用设备后点击"提交登记"。</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>查看和管理数据</h3>
-                        <p>点击上方<strong>"后台管理"</strong>标签页，查看所有登记记录。</p>
-                        <p>支持按时间、设备类型筛选，并可导出Excel数据。</p>
-                    </div>
-                </div>
-                
-                <div class="highlight">
-                    <h3>推荐浏览器</h3>
-                    <p>为了获得最佳体验，建议使用以下浏览器：</p>
-                    
-                    <div class="browser-icons">
-                        <div class="browser-icon" onclick="openInBrowser('chrome')">
-                            <span class="icon">🌐</span>
-                            <span>Chrome</span>
-                        </div>
-                        <div class="browser-icon" onclick="openInBrowser('safari')">
-                            <span class="icon">🌐</span>
-                            <span>Safari</span>
-                        </div>
-                        <div class="browser-icon" onclick="openInBrowser('firefox')">
-                            <span class="icon">🌐</span>
-                            <span>Firefox</span>
-                        </div>
-                        <div class="browser-icon" onclick="openInBrowser('edge')">
-                            <span class="icon">🌐</span>
-                            <span>Edge</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="form-group">
+                <label for="dateFilter">按日期筛选</label>
+                <input type="date" id="dateFilter">
             </div>
-            
-            <div class="card qr-section">
-                <div class="wechat-warning">微信扫描需手动打开浏览器</div>
-                <h2 class="card-title">登记二维码</h2>
-                <div id="qrcode">
-                    <p class="loading">正在生成二维码...</p>
-                </div>
-                <p>使用手机扫描上方二维码进行登记</p>
-                
-                <div class="highlight" style="margin-top: 20px;">
-                    <h4>备用访问方式</h4>
-                    <p>如果无法扫码，请直接访问：</p>
-                    <p style="background: #f1f1f1; padding: 10px; border-radius: 5px; word-break: break-all; font-family: monospace;" id="pageUrl"></p>
-                </div>
+            <div class="form-group">
+                <label for="equipmentFilter">按设备筛选</label>
+                <select id="equipmentFilter">
+                    <option value="">所有设备</option>
+                    <option value="跑步机">跑步机</option>
+                    <option value="动感单车">动感单车</option>
+                    <option value="椭圆机">椭圆机</option>
+                    <option value="划船机">划船机</option>
+                    <option value="力量训练器">力量训练器</option>
+                </select>
             </div>
+            <button class="btn" onclick="filterRecords()">应用筛选</button>
+            <button class="btn btn-outline" onclick="clearFilters()">清除筛选</button>
         </div>
-        
-        <div class="tab-content">
-            <div class="main-content">
-                <div class="card qr-section">
-                    <div class="wechat-warning">微信扫描需手动打开浏览器</div>
-                    <h2 class="card-title">登记二维码</h2>
-                    <div id="qrcode-register">
-                        <p class="loading">正在生成二维码...</p>
-                    </div>
-                    <p>使用手机扫描上方二维码进行登记</p>
-                </div>
-                
-                <div class="card">
-                    <h2 class="card-title">登记信息</h2>
-                    <form id="registerForm">
-                        <div class="form-group">
-                            <label for="name">姓名</label>
-                            <input type="text" id="name" name="name" required placeholder="请输入您的姓名">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="phone">手机号码</label>
-                            <input type="tel" id="phone" name="phone" required placeholder="请输入您的手机号码">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="department">科室/部门</label>
-                            <input type="text" id="department" name="department" required placeholder="请输入您的科室或部门">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="equipment">选择锻炼器材</label>
-                            <select id="equipment" name="equipment" required>
-                                <option value="">-- 请选择器材 --</option>
-                                <option value="跑步机">跑步机</option>
-                                <option value="动感单车">动感单车</option>
-                                <option value="椭圆机">椭圆机</option>
-                                <option value="划船机">划船机</option>
-                                <option value="力量训练器">力量训练器</option>
-                            </select>
-                        </div>
-                        
-                        <button type="submit" class="btn-full">提交登记</button>
-                    </form>
-                    
-                    <div id="successMessage" class="success-message">
-                        登记成功！感谢您的使用。
-                    </div>
-                    
-                    <div id="errorMessage" class="error-message">
-                        登记失败，请检查信息后重试。
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="tab-content">
-            <div class="admin-panel">
-                <h2 class="card-title">后台管理</h2>
-                
-                <div class="data-help">
-                    <h4>📊 数据查询说明</h4>
-                    <p>所有登记数据保存在<strong>当前浏览器</strong>中，清除浏览器数据会导致记录丢失。</p>
-                    <p>如需在不同设备间同步数据，请使用<strong>导出CSV</strong>功能备份数据。</p>
-                    <button class="refresh-btn" onclick="loadRecords()">
-                        🔄 刷新数据
-                    </button>
-                </div>
-                
-                <div class="stats-cards">
-                    <div class="stat-card">
-                        <div class="stat-label">总登记次数</div>
-                        <div class="stat-number" id="totalRecords">0</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-label">今日登记</div>
-                        <div class="stat-number" id="todayRecords">0</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-label">设备数量</div>
-                        <div class="stat-number" id="equipmentCount">5</div>
-                    </div>
-                </div>
-                
-                <div class="filters">
-                    <div class="filter-group">
-                        <label for="dateFilter">按日期筛选</label>
-                        <input type="date" id="dateFilter">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="equipmentFilter">按设备筛选</label>
-                        <select id="equipmentFilter">
-                            <option value="">全部设备</option>
-                            <option value="跑步机">跑步机</option>
-                            <option value="动感单车">动感单车</option>
-                            <option value="椭圆机">椭圆机</option>
-                            <option value="划船机">划船机</option>
-                            <option value="力量训练器">力量训练器</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="searchInput">搜索姓名/手机</label>
-                        <input type="text" id="searchInput" placeholder="输入姓名或手机号搜索">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>&nbsp;</label>
-                        <button onclick="filterRecords()">筛选</button>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>&nbsp;</label>
-                        <button class="btn-outline" onclick="exportToCSV()">导出CSV</button>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>&nbsp;</label>
-                        <button class="btn-outline" onclick="clearAllData()" style="background: #ff4757; color: white;">清空数据</button>
-                    </div>
-                </div>
-                
-                <div class="equipment-management">
-                    <h3>设备使用统计</h3>
-                    <div class="equipment-list" id="equipmentStats">
-                        <!-- 设备使用统计将通过JS动态生成 -->
-                    </div>
-                </div>
-                
-                <h3>登记记录 <span id="recordsCount" style="font-size: 16px; color: #7f8c8d;"></span></h3>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>序号</th>
-                                <th>姓名</th>
-                                <th>手机号码</th>
-                                <th>科室/部门</th>
-                                <th>使用设备</th>
-                                <th>登记时间</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recordsTable">
-                            <tr>
-                                <td colspan="7" style="text-align: center;">正在加载数据...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 微信提示模态框 -->
-    <div id="wechatModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeModal()">&times;</span>
-            <h2>微信访问提示</h2>
-            <p>检测到您正在使用微信访问，部分功能可能受限。</p>
-            <p>请点击右上角"<strong>•••</strong>"按钮，然后选择"<strong>在浏览器打开</strong>"。</p>
+        <div class="card">
+            <h2>数据管理</h2>
+            <p>您可以导出数据备份或清空所有数据</p>
+            <button class="btn" onclick="exportToCSV()">导出CSV</button>
+            <button class="btn btn-outline" onclick="exportToJSON()">导出JSON</button>
+            <button class="btn btn-danger" onclick="clearAllData()">清空所有数据</button>
             
-            <div class="modal-buttons">
-                <button onclick="closeModal()">我知道了</button>
-                <button class="btn-outline" onclick="showWechatSteps()">查看详细步骤</button>
+            <div style="margin-top: 20px;">
+                <h3>导入数据</h3>
+                <input type="file" id="importFile" accept=".csv,.json" style="margin-bottom: 10px;">
+                <button class="btn btn-outline" onclick="importData()">导入数据</button>
             </div>
         </div>
-    </div>
 
-    <!-- 清空数据确认模态框 -->
-    <div id="clearDataModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeModal('clearDataModal')">&times;</span>
-            <h2>确认清空数据</h2>
-            <p>您确定要清空所有登记数据吗？此操作不可恢复！</p>
-            
-            <div class="modal-buttons">
-                <button onclick="closeModal('clearDataModal')">取消</button>
-                <button class="btn-outline" onclick="confirmClearData()" style="background: #ff4757; color: white;">确认清空</button>
+        <div class="card data-section">
+            <h2>登记记录 <span id="recordsCount" style="font-size: 16px; color: #7f8c8d;"></span></h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>姓名</th>
+                            <th>手机号码</th>
+                            <th>科室/部门</th>
+                            <th>使用设备</th>
+                            <th>登记时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsTable">
+                        <tr>
+                            <td colspan="7" class="empty-data">正在加载数据...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -931,123 +252,6 @@
             }
         }
         
-        // 检测是否在微信中打开
-        function isWechat() {
-            const ua = window.navigator.userAgent.toLowerCase();
-            return ua.indexOf('micromessenger') !== -1;
-        }
-        
-        // 显示微信提示
-        function showWechatAlert() {
-            if (isWechat()) {
-                document.getElementById('wechatAlert').style.display = 'block';
-            }
-        }
-        
-        // 关闭微信提示
-        function closeWechatAlert() {
-            document.getElementById('wechatAlert').style.display = 'none';
-        }
-        
-        // 显示模态框
-        function showModal(modalId) {
-            document.getElementById(modalId || 'wechatModal').style.display = 'flex';
-        }
-        
-        // 关闭模态框
-        function closeModal(modalId) {
-            document.getElementById(modalId || 'wechatModal').style.display = 'none';
-        }
-        
-        // 显示微信操作步骤
-        function showWechatSteps() {
-            alert('详细步骤：\n1. 点击右上角"•••"按钮\n2. 选择"在浏览器打开"\n3. 选择您喜欢的浏览器（如Safari、Chrome等）');
-            closeModal();
-        }
-        
-        // 切换标签页
-        function switchTab(index) {
-            // 移除所有活动标签和内容
-            const tabs = document.querySelectorAll('.tab');
-            const contents = document.querySelectorAll('.tab-content');
-            
-            tabs.forEach(tab => tab.classList.remove('active'));
-            contents.forEach(content => content.classList.remove('active'));
-            
-            // 激活选中的标签和内容
-            tabs[index].classList.add('active');
-            contents[index].classList.add('active');
-            
-            // 如果切换到后台管理，刷新数据
-            if (index === 2) {
-                loadRecords();
-                updateStats();
-            }
-        }
-        
-        // 生成二维码
-        function generateQRCode() {
-            // 使用完整URL而不是相对路径，解决微信识别问题
-            const fullUrl = window.location.href.split('?')[0] + '#register';
-            
-            // 清除之前的二维码
-            document.getElementById('qrcode').innerHTML = '';
-            document.getElementById('qrcode-register').innerHTML = '';
-            
-            // 显示URL
-            document.getElementById('pageUrl').textContent = fullUrl;
-            
-            // 生成新的二维码
-            new QRCode(document.getElementById('qrcode'), {
-                text: fullUrl,
-                width: 200,
-                height: 200,
-                colorDark: '#000000',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            
-            new QRCode(document.getElementById('qrcode-register'), {
-                text: fullUrl,
-                width: 200,
-                height: 200,
-                colorDark: '#000000',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        }
-        
-        // 保存登记记录
-        function saveRecord(record) {
-            const records = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
-            record.id = Date.now();
-            record.timestamp = new Date().toISOString();
-            record.date = new Date().toLocaleDateString('zh-CN');
-            record.time = new Date().toLocaleTimeString('zh-CN');
-            
-            records.push(record);
-            localStorage.setItem('registrationRecords', JSON.stringify(records));
-            
-            // 更新设备使用计数
-            updateEquipmentCount(record.equipment);
-            
-            return record.id;
-        }
-        
-        // 更新设备使用计数
-        function updateEquipmentCount(equipmentName) {
-            const equipmentList = JSON.parse(localStorage.getItem('equipmentList') || '[]');
-            const equipment = equipmentList.find(e => e.name === equipmentName);
-            
-            if (equipment) {
-                equipment.count += 1;
-            } else {
-                equipmentList.push({ name: equipmentName, count: 1 });
-            }
-            
-            localStorage.setItem('equipmentList', JSON.stringify(equipmentList));
-        }
-        
         // 加载登记记录
         function loadRecords() {
             const records = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
@@ -1055,9 +259,10 @@
             
             // 更新记录数量显示
             document.getElementById('recordsCount').textContent = `(共 ${records.length} 条记录)`;
+            document.getElementById('totalRecords').textContent = records.length;
             
             if (records.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">暂无登记记录</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" class="empty-data">暂无登记记录</td></tr>';
                 return;
             }
             
@@ -1072,54 +277,13 @@
                         <td>${record.equipment}</td>
                         <td>${record.date} ${record.time}</td>
                         <td>
-                            <button class="btn-outline" onclick="deleteRecord(${record.id})" style="padding: 5px 10px; font-size: 14px;">删除</button>
+                            <button class="btn btn-outline" onclick="deleteRecord(${record.id})" style="padding: 5px 10px; font-size: 12px;">删除</button>
                         </td>
                     </tr>
                 `;
             });
             
             tableBody.innerHTML = tableHTML;
-        }
-        
-        // 删除记录
-        function deleteRecord(id) {
-            if (!confirm('确定要删除这条记录吗？')) return;
-            
-            let records = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
-            records = records.filter(record => record.id !== id);
-            localStorage.setItem('registrationRecords', JSON.stringify(records));
-            
-            loadRecords();
-            updateStats();
-        }
-        
-        // 清空所有数据
-        function clearAllData() {
-            showModal('clearDataModal');
-        }
-        
-        // 确认清空数据
-        function confirmClearData() {
-            localStorage.setItem('registrationRecords', JSON.stringify([]));
-            
-            // 重置设备计数
-            const equipmentList = JSON.parse(localStorage.getItem('equipmentList') || '[]');
-            equipmentList.forEach(equipment => equipment.count = 0);
-            localStorage.setItem('equipmentList', JSON.stringify(equipmentList));
-            
-            loadRecords();
-            updateStats();
-            closeModal('clearDataModal');
-            alert('所有数据已清空！');
-        }
-        
-        // 更新统计信息
-        function updateStats() {
-            const records = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
-            const equipmentList = JSON.parse(localStorage.getItem('equipmentList') || '[]');
-            
-            // 更新总记录数
-            document.getElementById('totalRecords').textContent = records.length;
             
             // 更新今日记录数
             const today = new Date().toLocaleDateString('zh-CN');
@@ -1127,43 +291,34 @@
             document.getElementById('todayRecords').textContent = todayRecords.length;
             
             // 更新设备数量
+            const equipmentList = JSON.parse(localStorage.getItem('equipmentList') || '[]');
             document.getElementById('equipmentCount').textContent = equipmentList.length;
-            
-            // 更新设备使用统计
-            let equipmentStatsHTML = '';
-            equipmentList.forEach(equipment => {
-                equipmentStatsHTML += `
-                    <div class="equipment-item">
-                        <div>${equipment.name} <span class="usage-count">使用次数: ${equipment.count}</span></div>
-                    </div>
-                `;
-            });
-            document.getElementById('equipmentStats').innerHTML = equipmentStatsHTML;
         }
         
         // 筛选记录
         function filterRecords() {
-            const dateFilter = document.getElementById('dateFilter').value;
-            const equipmentFilter = document.getElementById('equipmentFilter').value;
-            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const searchValue = document.getElementById('search').value.toLowerCase();
+            const dateValue = document.getElementById('dateFilter').value;
+            const equipmentValue = document.getElementById('equipmentFilter').value;
             
             let records = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
             
             // 应用筛选条件
-            if (dateFilter) {
-                const filterDate = new Date(dateFilter).toLocaleDateString('zh-CN');
+            if (searchValue) {
+                records = records.filter(record => 
+                    record.name.toLowerCase().includes(searchValue) || 
+                    record.phone.includes(searchValue) ||
+                    record.department.toLowerCase().includes(searchValue)
+                );
+            }
+            
+            if (dateValue) {
+                const filterDate = new Date(dateValue).toLocaleDateString('zh-CN');
                 records = records.filter(record => record.date === filterDate);
             }
             
-            if (equipmentFilter) {
-                records = records.filter(record => record.equipment === equipmentFilter);
-            }
-            
-            if (searchInput) {
-                records = records.filter(record => 
-                    record.name.toLowerCase().includes(searchInput) || 
-                    record.phone.includes(searchInput)
-                );
+            if (equipmentValue) {
+                records = records.filter(record => record.equipment === equipmentValue);
             }
             
             // 更新表格
@@ -1173,7 +328,7 @@
             document.getElementById('recordsCount').textContent = `(筛选出 ${records.length} 条记录)`;
             
             if (records.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">没有找到匹配的记录</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" class="empty-data">没有找到匹配的记录</td></tr>';
                 return;
             }
             
@@ -1188,13 +343,32 @@
                         <td>${record.equipment}</td>
                         <td>${record.date} ${record.time}</td>
                         <td>
-                            <button class="btn-outline" onclick="deleteRecord(${record.id})" style="padding: 5px 10px; font-size: 14px;">删除</button>
+                            <button class="btn btn-outline" onclick="deleteRecord(${record.id})" style="padding: 5px 10px; font-size: 12px;">删除</button>
                         </td>
                     </tr>
                 `;
             });
             
             tableBody.innerHTML = tableHTML;
+        }
+        
+        // 清除筛选条件
+        function clearFilters() {
+            document.getElementById('search').value = '';
+            document.getElementById('dateFilter').value = '';
+            document.getElementById('equipmentFilter').value = '';
+            loadRecords();
+        }
+        
+        // 删除单条记录
+        function deleteRecord(id) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            
+            let records = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
+            records = records.filter(record => record.id !== id);
+            localStorage.setItem('registrationRecords', JSON.stringify(records));
+            
+            loadRecords();
         }
         
         // 导出CSV文件
@@ -1228,83 +402,121 @@
             document.body.removeChild(link);
         }
         
-        // 在浏览器中打开
-        function openInBrowser(browser) {
-            alert(`建议使用${browser}浏览器获得最佳体验`);
+        // 导出JSON文件
+        function exportToJSON() {
+            const records = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
+            
+            if (records.length === 0) {
+                alert('没有数据可导出');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(records, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `登记记录_${new Date().toLocaleDateString('zh-CN')}.json`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 导入数据
+        function importData() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请选择要导入的文件');
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    let records;
+                    if (file.name.endsWith('.csv')) {
+                        // 简单的CSV解析逻辑
+                        const csvData = e.target.result;
+                        const lines = csvData.split('\n');
+                        records = [];
+                        
+                        // 跳过表头
+                        for (let i = 1; i < lines.length; i++) {
+                            const line = lines[i].trim();
+                            if (!line) continue;
+                            
+                            // 简单的CSV解析（注意：这不处理带逗号的引用字段）
+                            const values = line.split(',');
+                            if (values.length >= 6) {
+                                records.push({
+                                    id: Date.now() + i,
+                                    name: values[0].replace(/"/g, ''),
+                                    phone: values[1].replace(/"/g, ''),
+                                    department: values[2].replace(/"/g, ''),
+                                    equipment: values[3].replace(/"/g, ''),
+                                    date: values[4].replace(/"/g, ''),
+                                    time: values[5].replace(/"/g, ''),
+                                    timestamp: new Date().toISOString()
+                                });
+                            }
+                        }
+                    } else if (file.name.endsWith('.json')) {
+                        records = JSON.parse(e.target.result);
+                    } else {
+                        alert('不支持的文件格式');
+                        return;
+                    }
+                    
+                    if (records.length > 0) {
+                        // 合并现有数据
+                        const existingRecords = JSON.parse(localStorage.getItem('registrationRecords') || '[]');
+                        const combinedRecords = [...existingRecords, ...records];
+                        localStorage.setItem('registrationRecords', JSON.stringify(combinedRecords));
+                        
+                        alert(`成功导入 ${records.length} 条记录`);
+                        loadRecords();
+                        fileInput.value = '';
+                    } else {
+                        alert('文件中没有找到有效数据');
+                    }
+                } catch (error) {
+                    alert('文件解析失败: ' + error.message);
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // 清空所有数据
+        function clearAllData() {
+            if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) return;
+            
+            localStorage.setItem('registrationRecords', JSON.stringify([]));
+            
+            // 重置设备计数
+            const equipmentList = JSON.parse(localStorage.getItem('equipmentList') || '[]');
+            equipmentList.forEach(equipment => equipment.count = 0);
+            localStorage.setItem('equipmentList', JSON.stringify(equipmentList));
+            
+            loadRecords();
+            alert('所有数据已清空！');
         }
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
-            // 初始化数据存储
             initStorage();
-            
-            // 生成二维码
-            generateQRCode();
-            
-            // 加载记录
             loadRecords();
-            updateStats();
             
-            // 如果是微信浏览器，显示提示
-            if (isWechat()) {
-                setTimeout(() => showModal(), 1000);
-                setTimeout(showWechatAlert, 1500);
-            }
-            
-            // 注册表单提交处理
-            document.getElementById('registerForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // 获取表单数据
-                const formData = new FormData(this);
-                const record = {
-                    name: formData.get('name'),
-                    phone: formData.get('phone'),
-                    department: formData.get('department'),
-                    equipment: formData.get('equipment')
-                };
-                
-                // 简单验证
-                if (!record.name || !record.phone || !record.department || !record.equipment) {
-                    document.getElementById('errorMessage').style.display = 'block';
-                    document.getElementById('errorMessage').textContent = '请填写所有必填字段';
-                    return;
-                }
-                
-                // 手机号验证
-                if (!/^1[3-9]\d{9}$/.test(record.phone)) {
-                    document.getElementById('errorMessage').style.display = 'block';
-                    document.getElementById('errorMessage').textContent = '请输入有效的手机号码';
-                    return;
-                }
-                
-                // 保存记录
-                saveRecord(record);
-                
-                // 显示成功消息
-                document.getElementById('successMessage').style.display = 'block';
-                document.getElementById('errorMessage').style.display = 'none';
-                
-                // 3秒后隐藏成功消息
-                setTimeout(function() {
-                    document.getElementById('successMessage').style.display = 'none';
-                }, 3000);
-                
-                // 重置表单
-                this.reset();
-            });
-            
-            // 检查URL哈希，自动切换到登记页面
-            if (window.location.hash === '#register') {
-                switchTab(1);
-            }
-        });
-        
-        // 页面哈希变化监听
-        window.addEventListener('hashchange', function() {
-            if (window.location.hash === '#register') {
-                switchTab(1);
-            }
+            // 添加搜索框实时筛选
+            document.getElementById('search').addEventListener('input', filterRecords);
+            document.getElementById('dateFilter').addEventListener('change', filterRecords);
+            document.getElementById('equipmentFilter').addEventListener('change', filterRecords);
         });
     </script>
 </body>
